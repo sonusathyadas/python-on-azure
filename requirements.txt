@@ -1,0 +1,12 @@
+azure-common==1.1.25
+azure-core==1.6.0
+azure-storage-blob==2.1.0
+azure-storage-common==2.1.0
+Django==3.0.7
+django-bootstrap4==2.0.1
+django-storages==1.9.1
+Pillow==7.1.2
+psycopg2==2.8.5
+applicationinsights==0.11.9
+opencensus-ext-django==0.7.2
+opencensus-ext-azure==1.0.3

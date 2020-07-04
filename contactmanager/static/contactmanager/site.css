@@ -1,0 +1,11 @@
+.title-text{
+    color:red;
+    text-shadow: black;
+}
+
+.card-imgx {
+    position: relative !important;
+    top: 50% !important;
+    transform: translateY(-50%);
+    padding-top: 5px;
+    }

@@ -1,0 +1,42 @@
+{% extends "contactmanager/layout.html" %}
+
+{% block title %}
+Contact Manager Application
+{% endblock %}
+
+{% block content %}
+<h2 class="text-center">User List</h2>
+<div class="row">
+    {% for contact in object_list %}
+    <div class="col-md-4 card">
+        <div class="row">
+            <div class="col-sm-4 card">
+                <div>
+                    <img class="card-img-top embed-responsive-item card-imgx" src="{{MEDIA_URL}}{{contact.image}}" alt="{{ contact.name}}" />
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <table class="table table-sm">
+                    <tr>
+                        <td class="small">Name</td>
+                        <td class="small">{{contact.name}}</td>
+                    </tr>
+                    <tr>
+                        <td class="small">Email</td>
+                        <td class="small">{{contact.email}}</td>
+                    </tr>
+                    <tr>
+                        <td class="small">Mobile</td>
+                        <td class="small">{{contact.mobile}}</td>
+                    </tr>
+                    <tr>
+                        <td class="small">Fax</td>
+                        <td class="small">{{contact.fax}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+
+# Login to azure (Not required in Cloud Shell)
+az login
+
+# Create a resoure group
+az group create -n PyDayWorkshopGroup -l eastus
+
+# Create a storage account
+az storage account create -n pydayworkshopstorage -g PyDayWorkshopGroup -l eastus --access-tier Hot --kind StorageV2 --sku Standard_LRS
+
+
+#Create Postgesql server
+az postgres server create  -n pydaypostgres  -g PyDayWorkshopGroup  -l eestus  --admin-user labuser  --admin-password Password123  --sku-name GP_Gen4_2 
+# Update firewall rule
+az postgres server firewall-rule create --server pydaypostgres  -g PyDayWorkshopGroup -n AllowAllIps --start-ip-address 0.0.0.0 --end-ip-address 255.255.255.255
+
+# Create ACR
+az acr create -g PyDayWorkshopGroup --name pydayacr --sku Basic
+
+# Login to ACR
+az acr login --name pydayacr
+
+docker build -t pydayacr.azurecr.io/django-app:latest .
+
+docker push pydayacr.azurecr.io/django-app:latest
+
+az acr build --image pydayacr.azurecr.io/django-app --registry pydayacr ./path/of/app
+
+
+# Create an app service plan
+az appservice plan create -n PyDayWorkshopAppPlan -g PyDayWorkshopGroup --sku S1 --is-linux
+
+# List available runtimes for Linux plan 
+az webapp list-runtimes  --linux
+
+# Create a web app  (Code deployment)
+az webapp create -n pyday-django-web -g PyDayWorkshopGroup -p PyDayWorkshopAppPlan --runtime "PYTHON|3.8"
+
+# Create a web app for containers (Docker container deployment)
+az webapp create -n pyday-django-dockerapp -g PyDayWorkshopGroup --plan PyDayWorkshopAppPlan -i pydayacr.azurecr.io/django-app:latest 
+
+# Configure the registry credentials
+az webapp config container set -n pyday-django-dockerapp -g PyDayWorkshopGroup --docker-custom-image-name pydayacr.azurecr.io/django-app:latest --docker-registry-server-url https://pydayacr.azurecr.io --docker-registry-server-user pydayacr --docker-registry-server-password VS3Jk36Hqfn9gzAGsl8guG3fcI2j+Pvo
+
+
+
+
+
+
+
+
+
+
+
