@@ -64,9 +64,13 @@ In our application, Django uses Sqlite as the default database for user tables a
         os.environ['DATABASE_PORT'] = '5432'
     ```
 9) Open the `settings.py` from the `contactproject` directory and add the following code to the import section
-    ```from envconfig import set_env_variables```
+    ```
+    from envconfig import set_env_variables
+    ```
 10) After the import statements add the following code to call the `set_env_variables` method to set the evironment variables.
-    ```set_env_variables()```
+    ```
+    set_env_variables()
+    ```
 11) Find and replace the `DATABASES` section with the following value in the `settings.py` file.
     ```
     DATABASES = {
