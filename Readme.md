@@ -85,3 +85,85 @@ In our application, Django uses Sqlite as the default database for user tables a
 13) Run the application by running the command `py manage.py runserver` and navigate to `http://localhost:8000`. Click on the `profile` link and add a new contact. The contact details will be saved in the new table created in `PostgreSQL` server.
 
 ## Configure Storage accout for static and media files
+You can now use the Azure storage account blob service for serviing static files such as javascripts, stylesheets and media files such as video and images. To configure the application for serving static files from storage blob service, you need to create a storage account blob container in your Azure subscription.
+
+1) Open the command prompt and login to azure subscriotion. Run the following command to create a new storage account. You can use your own storageaccount name value which is unique.
+    > az storage account create -n contactappstorage -g AzurePythonGroup -l eastus --access-tier Hot --kind StorageV2 --sku Standard_LRS
+2) Once the storage account is created successfully, run the following commands to create the containers for static files and media files with `blob` public access type.
+    > az storage container create -n static --account-name contactappstorage --public-access blob
+
+    > az storage container create -n media --account-name contactappstorage --public-access blob
+3) Now, we need to extract the storage account key to configure in our application. Run the following command to list the storage account keys. It will list both the keys of your storage account. You can choose either the storage account key value for `Key1` or `Key2`.
+    > az storage account keys list  -n contactappstorage -g AzurePythonGroup
+
+4) To configure storage account services in your application, you need to install `django-storages` and `azure-storage-blob` packages in your application. Run the following command to install the packages using `pip`.
+    > pip install django-storages==1.9.1 azure-storage-blob==2.1.0
+    
+    > [!WARNING]
+    > Make sure that you are installing the version `2.1.0` of the `azure-storage-blob` package.
+
+5) Open the `envconfig.py` file in your application and update the code to set list of environment variables for storage account configuration. Add the following code below the PostgreSQL configuration inside the `set_env_variables()`. 
+    ```
+    def set_env_variables():
+        # PostgreSQL server configuration. 
+        # Code removed for brevity
+        
+        # Media and static file Storage configurations
+        os.environ['STORAGE_ACCOUNT_NAME'] = '<STORAGE_ACCOUNT_NAME>'
+        os.environ['STORAGE_ACCOUNT_KEY']  = '<STORAGE_ACCOUNT_KEY>'
+        os.environ['STORAGE_ACCOUNT_DOMAIN'] = '<STORAGE_ACCOUNT_NAME>.blob.core.windows.net'
+        os.environ['STORAGE_MEDIA_CONTAINER'] = 'media'
+        os.environ['STORAGE_STATIC_CONTAINER'] = 'static'
+    ```
+    Replace the *STORAGE_ACCOUNT_NAME* and *STORAGE_ACCOUNT_KEY* with the your storage account name and key.
+6) Create a new directory `storage` inside the `contactmanger` web application and add a new python file to it. Name the file as `azureblob.py` and add two python classes inside it. First class is used for providing media storage access and another one is for static file storage access. Add the following code to the `azureblob.py` file.
+    ```
+    from django.conf import settings
+    from storages.backends.azure_storage import AzureStorage
+    
+    class AzureMediaStorage(AzureStorage):    
+        account_name = settings.AZURE_ACCOUNT_NAME
+        account_key = settings.AZURE_STORAGE_KEY
+        azure_container = settings.AZURE_MEDIA_CONTAINER
+        expiration_secs = None
+        overwrite_files = True
+        
+    class AzureStaticStorage(AzureStorage):
+        account_name = settings.AZURE_ACCOUNT_NAME
+        account_key = settings.AZURE_STORAGE_KEY
+        azure_container = settings.AZURE_STATIC_CONTAINER
+        expiration_secs = None
+    ```
+
+7) Open the `settings.py` file and find the static files and media files storage configuration section. Replace the following code 
+    ```
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    ```
+    with the code given below.
+    ```
+    AZURE_ACCOUNT_NAME=os.environ.get('STORAGE_ACCOUNT_NAME')
+    AZURE_STORAGE_KEY = os.environ.get('STORAGE_ACCOUNT_KEY')
+    AZURE_CUSTOM_DOMAIN = os.environ.get('STORAGE_ACCOUNT_DOMAIN')
+    AZURE_MEDIA_CONTAINER = os.environ.get('STORAGE_MEDIA_CONTAINER')
+    AZURE_STATIC_CONTAINER=os.environ.get('STORAGE_STATIC_CONTAINER')
+    
+    if(DEBUG):
+        STATIC_URL = '/static/'
+        STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
+        MEDIA_URL = '/media/'
+        MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    else:
+        STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/'
+        MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/'
+        STATICFILES_STORAGE = 'contactmanager.storage.azureblob.AzureStaticStorage'
+        DEFAULT_FILE_STORAGE = 'contactmanager.storage.azureblob.AzureMediaStorage'
+    
+    ```
+    This will use the local `static` and `media` folders when you run in `Debug` mode. When you move the application to production server it will use the Azure storage blob containers. Before moving the application to production, don't forget to update the value of the `DEBUG` environment variable value to `False` in `settings.py` file.
+8) Open the integrated terminal of the VS Code and run the following command to collect all static files in to the `static` container in the storage account. 
+    > py manage.py collectstatic
+9) Run the application by running the command `py manage.py runserver`. 
+
