@@ -84,7 +84,7 @@ In our application, Django uses Sqlite as the default database for user tables a
     > python manage.py migrate
 13) Run the application by running the command `py manage.py runserver` and navigate to `http://localhost:8000`. Click on the `profile` link and add a new contact. The contact details will be saved in the new table created in `PostgreSQL` server.
 
-## Configure Storage accout for static and media files
+## Configure Storage account for static and media files
 You can now use the Azure storage account blob service for serviing static files such as javascripts, stylesheets and media files such as video and images. To configure the application for serving static files from storage blob service, you need to create a storage account blob container in your Azure subscription.
 
 1) Open the command prompt and login to azure subscriotion. Run the following command to create a new storage account. You can use your own storageaccount name value which is unique.
