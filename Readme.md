@@ -64,13 +64,9 @@ In our application, Django uses Sqlite as the default database for user tables a
         os.environ['DATABASE_PORT'] = '5432'
     ```
 9) Open the `settings.py` from the `contactproject` directory and add the following code to the import section
-    ```
-    from envconfig import set_env_variables
-    ```
+    ```from envconfig import set_env_variables```
 10) After the import statements add the following code to call the `set_env_variables` method to set the evironment variables.
-    ```
-    set_env_variables()
-    ```
+    ```set_env_variables()```
 11) Find and replace the `DATABASES` section with the following value in the `settings.py` file.
     ```
     DATABASES = {
@@ -84,6 +80,8 @@ In our application, Django uses Sqlite as the default database for user tables a
         }
     }
     ```
-
+12) Run the following command to apply the database migrations. It will generate the tables and other database resources required for the applications.
+    > python manage.py migrate
+13) Run the application by running the command `py manage.py runserver` and navigate to `http://localhost:8000`. Click on the `profile` link and add a new contact. The contact details will be saved in the new table created in `PostgreSQL` server.
 
 ## Configure Storage accout for static and media files
