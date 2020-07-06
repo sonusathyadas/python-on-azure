@@ -32,7 +32,7 @@ You can now create a Python virtual environment for the application to run the a
 
 9) Open browser and navigate to http://localhost:8000.
 
-## Configure Azure Database for PostgreSQL for database 
+## Configure Azure Database for PostgreSQL 
 In our application, Django uses Sqlite as the default database for user tables and admin tables. When you plan to migrate your application to Azure, you also need to think about database migrations. Sqlite is good for local development and test purposes but not good for production. So we can think of any cloud based open-source database solutions. Azure provides open-source database solutions for PostgreSQL, MySQL and MariaDB. In this tutorials we will be using `Azure Database for PostgreSQL` for out database requirements. Perform the following steps to configure `Azure Database for PostgreSQL` in our application.
 
 1) Open the command prompt and login to your Azure subscription. Run the following command to login to your Azure subscription.
