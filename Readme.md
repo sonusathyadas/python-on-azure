@@ -288,6 +288,3 @@ Docker is one of the most commonly used deployment approach for modern applicati
 9) Once the deployment is completed, you can navigate to the Web App URL to view the contact manager application.
 
     ![Application](images/app1.png)
-
-> [!NOTE]
-> Each `services.Add{SERVICE_NAME}` extension method adds (and potentially configures) services. For example, `services.AddMvc()` adds the services Razor Pages and MVC require. We recommended that apps follow this convention. Place extension methods in the [Microsoft.Extensions.DependencyInjection](/dotnet/api/microsoft.extensions.dependencyinjection) namespace to encapsulate groups of service registrations.
