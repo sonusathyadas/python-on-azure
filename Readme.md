@@ -289,3 +289,5 @@ Docker is one of the most commonly used deployment approach for modern applicati
 
     ![Application](images/app1.png)
 
+> [!NOTE]
+> Each `services.Add{SERVICE_NAME}` extension method adds (and potentially configures) services. For example, `services.AddMvc()` adds the services Razor Pages and MVC require. We recommended that apps follow this convention. Place extension methods in the [Microsoft.Extensions.DependencyInjection](/dotnet/api/microsoft.extensions.dependencyinjection) namespace to encapsulate groups of service registrations.
