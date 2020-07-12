@@ -282,7 +282,7 @@ Docker is one of the most commonly used deployment approach for modern applicati
 8) Create an App Service Web App to deploy the docker image you have pushed into the ACR.
     > az webapp create -n contactmanager-web -g AzurePythonGroup -p PythonAppPlan -i pythonacr.azurecr.io/contactmanager:<TAG>
 
-    > [!NOTE]
+    > :NOTE:
     > Replace the *TAG* with the newly created image tag value (eg: `ca1` in the above example).
 
 9) Once the deployment is completed, you can navigate to the Web App URL to view the contact manager application.
