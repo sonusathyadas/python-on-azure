@@ -8,6 +8,7 @@ In this tutorial I am going to demonstrate how to develop a cloud native Django 
 * Azure Subscription
 * Azure CLI 2.x
 * Azure DevOps account
+* Git
 
 ## Setting up the project
 -------------
@@ -280,7 +281,7 @@ Docker is one of the most commonly used deployment approach for modern applicati
     > az appservice plan create -n PythonAppPlan -g AzurePythonGroup --sku S1 --is-linux
 
 8) Create an App Service Web App to deploy the docker image you have pushed into the ACR.
-    > az webapp create -n contactmanager-web -g AzurePythonGroup -p PythonAppPlan -i pythonacr.azurecr.io/contactmanager:<TAG>
+    > az webapp create -n contactmanager-web -g AzurePythonGroup -p PythonAppPlan -i pythonacr.azurecr.io/contactmanager:&lt;TAG&gt;
 
     > [!NOTE]
     > Replace the *TAG* with the newly created image tag value (eg: `ca1` in the above example).
@@ -288,3 +289,159 @@ Docker is one of the most commonly used deployment approach for modern applicati
 9) Once the deployment is completed, you can navigate to the Web App URL to view the contact manager application.
 
     ![Application](images/app1.png)
+
+## Enabling CI/CD using Azure DevOps
+We have deployed our containerized application into App Service Web App. But whenever we make changes in the code, we need to build and push the image to ACR manually. Also we need to manually deploy the latest version of the image to the Web App. We can enable Continues Integraation and Continues Deployment for our application that build and push the docker image to ACR whenever the code is updated in the repository and redeploy the new version of the application. To do so, we need to use `Git` for source code management and `Azure DevOps` for building CI/CD pipeline. Perform the following steps to enable CI/CD for our application using `Azure DevOps`.
+
+1) Open command prompt in the project root directory and run the following command to enable Git on the project
+    > git init 
+
+2) Create a `.gitignore` file and add the following lines into it.
+    ```
+    __pycache__/
+    .vscode/
+    env/
+    ```
+3) Run the following commands to add the files to staging and then to commit.
+    > git add .
+
+    > git commit -m "Initial update"
+
+4) Now, you can create a new `Azure DevOps` project by navigating to [https://dev.azure.com](https://dev.azure.com).
+
+    ![DevOps project ](images/devops1.png)
+
+5) After the project is created, go to the `Repos` and copy the commands from the `Push an existing repository from command line` section and execute in your local command prompt at project root.
+
+    ![DevOps project ](images/devops2.png)
+
+6) Execute the commands to push the code to the repository.
+    ```
+    git remote add origin https://sonusathyadas@dev.azure.com/sonusathyadas/Python-Django-Web/_git/Python-Django-Web
+    git push -u origin --all
+    ```
+
+7) Once the code is pushed into the repository, you will be able to see the files in the `Azure Repos` repository.
+    
+    ![DevOps project ](images/devops3.png)
+
+8) Create a new Build pipeline by selecting `Pipelines > Pipelines > Create pipeline`.
+9) From the wizard choose the `Azure Repos Git (YAML)` to choose the Azure Repos as your code source location.
+
+    ![DevOps project ](images/devops4.png)
+
+10) In the repository selection page, click on the projects repository name.
+    
+    ![DevOps project ](images/devops5.png)
+
+11) In pipeline configuration page, select `Docker - Build and push image to Azure Container Registry`.
+
+    ![DevOps project ](images/devops6.png)
+
+12) This will prompt a dialog box to choose your Azure Subscription. Select your Azure Subscription and click Continue. Provide your azure credentials when prompted.
+
+    ![DevOps project ](images/devops7.png)
+
+13) Select the `Azure Container Registry` your have created in the previous stage. Click `Validate and Configure` to continue.
+    
+    ![DevOps project ](images/devops8.png)
+
+14) This will generate a YAML file with all the configurations required for building and pushing the image to the selected ACR. Update the `imageRepository` variable value to `contactmanager` and click on `Save and Run`. It prompts to commit the changes to git. Provide a comment if required. The YAML file will be saved into the project repository with the name `azure-pipelines.yml`.
+    
+    ![DevOps project ](images/devops9.png)
+
+15) It will queue the build process and start buildig the image after the build agent is allocated. 
+    
+    ![DevOps project ](images/devops10.png)
+
+16) You can goto the ACR reository to verify the newly created image.
+    
+    ![DevOps project ](images/devops11.png)
+
+17) Click on the Pipelines to list all the pipelines. Click on the three dots on the right side of the pipeline and select `Rename/Move` to give a valid name for your build pipeline.
+    
+    ![DevOps project ](images/devops11-2.png)
+
+18) Rename the pipeline to `ContactManager-CI` and save.
+    
+    ![DevOps project ](images/devops11-3.png)
+
+19) We have completed the build pipeline creation. We can now start creating the release pipeline for the deployment. Before start creating the release pipeline, we can set up a reusable service connection for Azure Resource Manager. Click on the `Project Settings > Servcie connections > New Service Connection`.
+
+    ![DevOps project ](images/svc1.png)
+
+20) Choose `Azure Resource Manager` and click `Next`.
+    
+    ![DevOps project ](images/svc2.png) 
+
+21) Select `Service Principal (automatic)` and click `Next`.
+    
+    ![DevOps project ](images/svc3.png)
+
+22) Select scope level as subscription and choose the Azure Subscription. If subscription is not listed add new subscription. Provide the credentials if prompted. Select the Resource Group name where the App Service Web App is deployed and provide a name for the service connection. Click `Save` to create a new connection.
+
+    ![DevOps project ](images/svc4.png)
+
+23) Select `Releases` from the `Pipelines` section. Click on `New Pipeline`.
+
+24) From the available templates, select `Azure App Service deployment`.
+
+    ![DevOps project ](images/devops12.png)    
+
+25) Provide the stage name as `Production` and close the dialog.
+    
+    ![DevOps project ](images/devops13.png)
+
+26) From the `Artifacts` section click on `Add an artifact`. It will open a dialog box with different artifact source types. Select `Build` as the artifact source type and choose your pipeline name. Click *Add* to continue.
+    
+    ![DevOps project ](images/devops14.png)
+
+27) Click on the `Continues Deployment Trigger` icon and enable continues deployment for the pipeline.
+    
+    ![DevOps project ](images/devops15.png)
+
+28) Click on the `Variables` tab and create two variables under the `Pipeline variables` section. You can clik on the `+Add` button to add new variables.
+    |Variable Name | Value                |
+    |--------------|----------------------|
+    |registryName  | pythonacr.azurecr.io |
+    |repositoryName| contactmanager       |
+
+    > [!IMPORTANT]
+    > You need to provide your ACR server name instead of `pythonacr` if you have selected a different name for the registry. Provide the docker image name as the repository name value.
+
+
+29) Click on the `Tasks` tab and fill the parameter values for the Production stage.
+    | Parameter name         |  Value                             |
+    |------------------------|------------------------------------|
+    | Azure Subscription     | Service connection name            |
+    | App type               | Web App for Containers (Linux)     |
+    | App service name       | Name of app service created        |
+    | Registry or namespace  | $(registryName)                    |
+    | Repository             | $(repositoryName)                  |
+    
+    ![DevOps project ](images/devops17.png)
+
+30) Click on the task `Deploy Azure App Service` and confirm the `Tag` parameter value is selected as `$(Build.BuildId)`. This will ensure that the image with last successful build id will be deployed to production.
+
+    ![DevOps project ](images/devops18.png)    
+
+31) Rename the pipeline to `ContactManager-CD` and click on `Save` to save the changes. After yu save the changes the `Create release` button will be enabled. 
+    
+    ![DevOps project ](images/devops19.png)
+
+32) Click on the  `Create release` to create a new release pipeline. Select the `Production` stage and click `Create`.
+    
+    ![DevOps project ](images/devops20.png)
+
+33) It creates a new release with the name `Release-1`. Click on the newly created release and click on the `Deploy` button to do the initial deployment manually.
+
+    ![DevOps project ](images/devops21.png)
+
+34) This will queue the deployment process. You can view the status of the deployment in the `Logs`.
+    
+    ![DevOps project ](images/devops22.png)
+
+35) Once the deployment is completed you can navigate to your application. To test the CI/CD pipeline make some code changes in your application and push the changes to the repository. 
+    > [!IMPORTANT]
+    > You may need to run a `git pull` command from the local command prompt to sync the changes made on the Azure Repos to the local repository.
+
